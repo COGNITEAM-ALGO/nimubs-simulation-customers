@@ -1,0 +1,15 @@
+<launch>  
+
+  
+  <node name="customer_sim_patrol_node" pkg="customer_sim_patrol" type="customer_sim_patrol_node" output="screen" required="true">
+
+    <rosparam param="waypoints" command="load" file="$(find customer_sim_patrol)/waypoints/waypoints.yaml"  />
+
+   
+  </node>
+
+
+  
+	
+	
+</launch>

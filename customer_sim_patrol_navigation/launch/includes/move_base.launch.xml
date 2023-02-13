@@ -1,0 +1,492 @@
+<!-- 
+    ROS navigation stack with velocity smoother and safety (reactive) controller
+-->
+<launch>
+  <include file="$(find customer_sim_patrol_navigation)/launch/includes/velocity_smoother.launch.xml"/>
+  <include file="$(find customer_sim_patrol_navigation)/launch/includes/safety_controller.launch.xml"/>
+
+  <!--Decides which planner to choose-->
+  <arg name="dwa_planner_activated" default="true" />
+  <arg name="recovery_behavior_enabled" default="true" />
+
+  <!-- <arg name="odom_frame_id"   default="odom"/> -->
+  <arg name="base_frame_id"   default="base_link"/>
+  <arg name="global_frame_id" default="map"/>
+  <arg name="general_odom_topic" default="odom" />
+  <arg name="laser_topic" default="scan" />
+  <arg name="robot_radius" default="0.32" />
+
+  <!-- scan -->
+  <arg name="scan_min_obstacle_height" default="0.1" />
+  <arg name="scan_max_obstacle_height" default="0.5" />
+  <arg name="scan_observation_persistence" default="0.0" />
+  <!-- realsense_camera -->
+  <arg name="d435_cam1_min_obstacle_height" default="0.2" />
+  <arg name="d435_cam1_max_obstacle_height" default="1.0" />
+  <arg name="d435_cam1_observation_persistence" default="0.0" />
+
+  <!-- bumper -->
+  <arg name="bump_min_obstacle_height" default="0.0" />
+  <arg name="bump_max_obstacle_height" default="0.15" />
+
+  <!--general -->
+  <arg name="max_obstacle_height" default="1.0" />
+
+  <arg name="local_costmap_transform_tolerance" default="0.5" />
+  <arg name="global_costmap_transform_tolerance" default="0.5" />
+
+  <arg name="general_max_vel_x" default="10.0" />
+  <arg name="general_max_vel_y" default="0.0" />
+  <arg name="general_min_vel_x" default="-10.0" />
+
+  <arg name="costmap_obstacle_range" default="2.5" />
+
+  <arg name="track_unknown_space" default="false" />
+
+   <!--global origins-->
+  <arg name="global_origin_x" default="0.0" />
+  <arg name="global_origin_y" default="0.0" />
+  <arg name="global_origin_z" default="0.0" />
+
+   <!--global map dimenssions-->
+  <arg name="global_map_width" default="20.0" />
+  <arg name="global_map_height" default="20.0" />
+
+  <!--local map dimenssions-->
+  <arg name="local_map_width" default="2.0" />
+  <arg name="local_map_height" default="2.0" />
+
+  <!--local map inflation_radius-->
+  <arg name="local_inflation_radius" default="0.3" />
+
+  <arg name="custom_param_file" default="$(find customer_sim_patrol_navigation)/param/dummy.yaml"/>
+
+  <!--DWA parameters-->
+  <arg name="dwa_min_vel_y" default="0.0" />
+  <arg name="dwa_max_trans_vel" default="0.5" />
+  <arg name="dwa_min_trans_vel" default="0.1" />
+  <arg name="dwa_trans_stopped_vel" default="0.1" />
+
+  <arg name="dwa_max_vel_theta" default="0.5" />
+  <arg name="dwa_min_vel_theta" default="0.1" />
+  <arg name="dwa_max_rot_vel" default="0.5" />
+  <arg name="dwa_min_rot_vel" default="0.1" />
+  <arg name="dwa_rot_stopped_vel" default="0.2" />
+
+  <arg name="dwa_acc_lim_x" default="1.0" />
+  <arg name="dwa_acc_lim_theta" default="3.0" />
+  <arg name="dwa_acc_lim_y" default="0.0" />
+
+  <arg name="general_yaw_goal_tolerance" default="3.14" />
+  <arg name="general_xy_goal_tolerance" default="0.1" />
+
+  <arg name="dwa_sim_time" default="2.0" />
+  <arg name="dwa_vx_samples" default="10" />
+  <arg name="dwa_vy_samples" default="1" />
+  <arg name="dwa_vtheta_samples" default="20" />
+
+  <arg name="dwa_path_distance_bias" default="128.0" />
+  <arg name="dwa_goal_distance_bias" default="24.0" />
+  <arg name="dwa_occdist_scale" default="0.3" />
+  <arg name="dwa_forward_point_distance" default="0.1" />
+  <arg name="dwa_stop_time_buffer" default="0.2" />
+  <arg name="dwa_scaling_speed" default="0.25" />
+  <arg name="dwa_max_scaling_factor" default="0.2" />
+
+  <arg name="dwa_oscillation_reset_dist" default="0.05" />
+
+  <arg name="dwa_publish_traj_pc" default="true" />
+  <arg name="dwa_publish_cost_grid_pc" default="true" />
+
+
+  <!--teb_planner parameters-->
+  <arg name="teb_autosize" default="true" />
+  <arg name="teb_dt_ref" default="0.3" />
+  <arg name="teb_dt_hysteresis" default="0.1" />
+  <arg name="teb_global_plan_overwrite_orientation" default="true" />
+  <arg name="teb_max_global_plan_lookahead_dist" default="2.0" />
+  <arg name="teb_feasibility_check_no_poses" default="2" />
+  <arg name="teb_max_vel_x_backwards" default="0.2" />
+  <arg name="teb_max_vel_theta" default="1.5" />
+  <arg name="teb_acc_lim_x" default="0.2" />
+  <arg name="teb_acc_lim_theta" default="0.6" />
+
+  <arg name="teb_min_turning_radius" default="0.40" />
+  <arg name="teb_wheelbase" default="0.16" />
+  <arg name="teb_cmd_angle_instead_rotvel" default="true" />
+
+  <arg name="teb_footprint_model_type" default="point" />
+
+  <!--<arg name="xy_goal_tolerance" default="0.2" />-->
+  <!--<arg name="yaw_goal_tolerance" default="0.0872665" />-->
+  <arg name="teb_free_goal_vel" default="false" />
+
+  <arg name="teb_min_obstacle_dist" default="0.20" />
+  <arg name="teb_include_costmap_obstacles" default="true" />
+  <arg name="teb_costmap_obstacles_behind_robot_dist" default="1.0" />
+  <arg name="teb_obstacle_poses_affected" default="15" />
+  <arg name="teb_costmap_converter_plugin" default="" />
+  <arg name="teb_costmap_converter_spin_thread" default="true" />
+  <arg name="teb_costmap_converter_rate" default="5" />
+
+  <arg name="teb_no_inner_iterations" default="3" />
+  <arg name="teb_no_outer_iterations" default="2" />
+  <arg name="teb_optimization_activate" default="true" />
+  <arg name="teb_optimization_verbose" default="false" />
+  <arg name="teb_penalty_epsilon" default="0.1" />
+  <arg name="teb_weight_max_vel_x" default="2" />
+  <arg name="teb_weight_max_vel_theta" default="1" />
+  <arg name="teb_weight_acc_lim_x" default="1" />
+  <arg name="teb_weight_acc_lim_theta" default="1" />
+  <arg name="teb_weight_kinematics_nh" default="1000" />
+  <arg name="teb_weight_kinematics_forward_drive" default="1" />
+  <arg name="teb_weight_kinematics_turning_radius" default="1" />
+  <arg name="teb_weight_optimaltime" default="10" />
+  <arg name="teb_weight_obstacle" default="20" />
+  <arg name="teb_weight_dynamic_obstacle" default="10" />
+
+  <arg name="teb_enable_homotopy_class_planning" default="false" />
+  <arg name="teb_enable_multithreading" default="true" />
+  <arg name="teb_simple_exploration" default="false" />
+  <arg name="teb_max_number_classes" default="4" />
+  <arg name="teb_selection_cost_hysteresis" default="1.0" />
+  <arg name="teb_selection_obst_cost_scale" default="1.0" />
+  <arg name="teb_selection_alternative_time_cost" default="false" />
+  <arg name="teb_roadmap_graph_no_samples" default="15" />
+  <arg name="teb_roadmap_graph_area_width" default="5" />
+  <arg name="teb_h_signature_prescaler" default="0.5" />
+  <arg name="teb_h_signature_threshold" default="0.1" />
+  <arg name="teb_obstacle_keypoint_offset" default="0.1" />
+  <arg name="teb_obstacle_heading_threshold" default="0.45" />
+  <arg name="teb_visualize_hc_graph" default="false" />
+
+  <!--This parameter gives the user an option to choose move-base with static layer or 
+    move-base without static map layer -->
+  <arg name="enable_static_layer" default="true" />
+
+  <!-- <group if="$(arg enable_static_layer)">
+    <rosparam file="$(find customer_sim_patrol_navigation)/param/global_costmap_params.yaml" command="load"/>
+  </group>
+  <group unless="$(arg enable_static_layer)">
+    <rosparam file="$(find customer_sim_patrol_navigation)/param/global_costmap_params_without_map_static_layer.yaml" command="load"/>
+  </group> -->
+
+  <!-- <group if="$(arg enable_static_layer)">
+    <rosparam file="$(find customer_sim_patrol_navigation)/param/load_static_layer.yaml" command="load"/>
+  </group>
+  <group unless="$(arg enable_static_layer)">
+    <rosparam file="$(find customer_sim_patrol_navigation)/param/load_not_static_layer.yaml" command="load"/>
+  </group> -->
+
+  <group if="$(arg dwa_planner_activated)">
+    <node pkg="move_base" type="move_base" required="true" name="move_base" output="screen">
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />   
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/local_costmap_params.yaml" command="load" />   
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/dwa_local_planner_params.yaml" command="load" />
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/move_base_params.yaml" command="load" />
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/global_planner_params.yaml" command="load" />
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/navfn_global_planner_params.yaml" command="load" />
+       
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/global_costmap_params.yaml" command="load" if="$(arg enable_static_layer)"/>
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/global_costmap_params_without_map_static_layer.yaml" command="load" unless="$(arg enable_static_layer)"/>  
+        
+        
+        <!-- external params file that could be loaded into the move_base namespace -->
+      <rosparam file="$(arg custom_param_file)" command="load" />
+
+      <param name="recovery_behavior_enabled" value="$(arg recovery_behavior_enabled)" />
+    
+      <param name="local_costmap/transform_tolerance" value="$(arg local_costmap_transform_tolerance)"/>
+      <param name="global_costmap/transform_tolerance" value="$(arg global_costmap_transform_tolerance)"/>
+
+      <!-- speed limits -->
+      <param name="DWAPlannerROS/max_vel_x" value="$(arg general_max_vel_x)"/>
+      <param name="DWAPlannerROS/max_vel_y" value="$(arg general_max_vel_y)"/>
+      <param name="DWAPlannerROS/min_vel_x" value="$(arg general_min_vel_x)" />
+
+
+      <!-- reset frame_id parameters using user input data -->
+      <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>
+      <param name="global_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+      <param name="local_costmap/global_frame" value="$(arg global_frame_id)"/>
+      <param name="local_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+      <param name="DWAPlannerROS/global_frame_id" value="$(arg global_frame_id)"/>
+
+
+      <param name="local_costmap/max_obstacle_height" value="$(arg max_obstacle_height)"/>
+      <param name="global_costmap/max_obstacle_height" value="$(arg max_obstacle_height)"/>
+
+    
+      <!-- scan heigths -->
+      <param name="local_costmap/obstacle_layer/scan/min_obstacle_height" value="$(arg scan_min_obstacle_height)"/>
+      <param name="local_costmap/obstacle_layer/scan/max_obstacle_height" value="$(arg scan_max_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/scan/min_obstacle_height" value="$(arg scan_min_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/scan/max_obstacle_height" value="$(arg scan_max_obstacle_height)"/>
+      <!-- realsense heigths -->
+      <param name="local_costmap/obstacle_layer/d435_cam1/min_obstacle_height" value="$(arg d435_cam1_min_obstacle_height)"/>
+      <param name="local_costmap/obstacle_layer/d435_cam1/max_obstacle_height" value="$(arg d435_cam1_max_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/d435_cam1/min_obstacle_height" value="$(arg d435_cam1_min_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/d435_cam1/max_obstacle_height" value="$(arg d435_cam1_max_obstacle_height)"/>
+
+      <!-- bump heigths -->
+      <param name="local_costmap/obstacle_layer/bump/min_obstacle_height" value="$(arg bump_min_obstacle_height)"/>
+      <param name="local_costmap/obstacle_layer/bump/max_obstacle_height" value="$(arg bump_max_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/bump/min_obstacle_height" value="$(arg bump_min_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/bump/max_obstacle_height" value="$(arg bump_max_obstacle_height)"/>
+
+      <!-- realsense observation_persistence-->
+      <param name="local_costmap/obstacle_layer/d435_cam1/observation_persistence" value="$(arg d435_cam1_observation_persistence)"/>
+      <param name="global_costmap/obstacle_layer/d435_cam1/observation_persistence" value="$(arg d435_cam1_observation_persistence)"/>
+
+      <!-- scan observation_persistence-->
+      <param name="local_costmap/obstacle_layer/scan/observation_persistence" value="$(arg scan_observation_persistence)"/>
+      <param name="global_costmap/obstacle_layer/scan/observation_persistence" value="$(arg scan_observation_persistence)"/>
+
+      <!--global origins-->
+      <param name="global_costmap/origin_x" value="$(arg global_origin_x)"/>
+      <param name="global_costmap/origin_y" value="$(arg global_origin_y)"/>
+      <param name="global_costmap/origin_z" value="$(arg global_origin_z)"/>
+
+        <!--global map dimenssions-->
+      <param name="global_costmap/width" value="$(arg global_map_width)"/>
+      <param name="global_costmap/height" value="$(arg global_map_height)"/>
+
+      <!--local map dimenssions-->
+      <param name="local_costmap/width" value="$(arg local_map_width)"/>
+      <param name="local_costmap/height" value="$(arg local_map_height)"/>
+      
+      <!-- robot radius-->
+      <param name="global_costmap/robot_radius" value="$(arg robot_radius)"/>
+      <param name="local_costmap/robot_radius" value="$(arg robot_radius)"/>
+
+      <!--track_unknown_space-->
+      <param name="local_costmap/obstacle_layer/track_unknown_space" value="$(arg track_unknown_space)" />
+
+      
+      <!-- obstacle range-->
+      <param name="global_costmap/obstacle_layer/obstacle_range" value="$(arg costmap_obstacle_range)"/>
+      <param name="local_costmap/obstacle_layer/obstacle_range" value="$(arg costmap_obstacle_range)"/>
+
+      <!-- inflation_radius-->
+      <param name="local_costmap/inflation_layer/inflation_radius" value="$(arg local_inflation_radius)"/>
+      <param name="global_costmap/inflation_layer/inflation_radius" value="$(arg local_inflation_radius)"/>
+
+
+      <!--DWA Parameters-->
+      <param name="DWAPlannerROS/min_vel_y" value="$(arg dwa_min_vel_y)" />
+
+      <param name="DWAPlannerROS/max_trans_vel" value="$(arg dwa_max_trans_vel)" />
+      <param name="DWAPlannerROS/min_trans_vel" value="$(arg dwa_min_trans_vel)" />
+      <param name="DWAPlannerROS/trans_stopped_vel" value="$(arg dwa_trans_stopped_vel)" />
+
+      <param name="DWAPlannerROS/max_vel_theta" value="$(arg dwa_max_vel_theta)" />
+      <param name="DWAPlannerROS/min_vel_theta" value="$(arg dwa_min_vel_theta)" />
+      <param name="DWAPlannerROS/max_rot_vel" value="$(arg dwa_max_rot_vel)" />
+      <param name="DWAPlannerROS/min_rot_vel" value="$(arg dwa_min_rot_vel)" />
+      <param name="DWAPlannerROS/rot_stopped_vel" value="$(arg dwa_rot_stopped_vel)" />
+
+      <param name="DWAPlannerROS/acc_lim_x" value="$(arg dwa_acc_lim_x)" />
+      <param name="DWAPlannerROS/acc_lim_theta" value="$(arg dwa_acc_lim_theta)" />
+      <param name="DWAPlannerROS/acc_lim_y" value="$(arg dwa_acc_lim_y)" />
+
+      <param name="DWAPlannerROS/yaw_goal_tolerance" value="$(arg general_yaw_goal_tolerance)" />
+      <param name="DWAPlannerROS/xy_goal_tolerance" value="$(arg general_xy_goal_tolerance)" />
+
+      <param name="DWAPlannerROS/sim_time" value="$(arg dwa_sim_time)" />
+      <param name="DWAPlannerROS/vx_samples" value="$(arg dwa_vx_samples)" />
+      <param name="DWAPlannerROS/vy_samples" value="$(arg dwa_vy_samples)" />
+      <param name="DWAPlannerROS/vtheta_samples" value="$(arg dwa_vtheta_samples)" />
+
+      <param name="DWAPlannerROS/path_distance_bias" value="$(arg dwa_path_distance_bias)" />
+      <param name="DWAPlannerROS/goal_distance_bias" value="$(arg dwa_goal_distance_bias)" />
+      <param name="DWAPlannerROS/occdist_scale" value="$(arg dwa_occdist_scale)" />
+      <param name="DWAPlannerROS/forward_point_distance" value="$(arg dwa_forward_point_distance)" />
+      <param name="DWAPlannerROS/stop_time_buffer" value="$(arg dwa_stop_time_buffer)" />
+      <param name="DWAPlannerROS/scaling_speed" value="$(arg dwa_scaling_speed)" />
+      <param name="DWAPlannerROS/max_scaling_factor" value="$(arg dwa_max_scaling_factor)" />
+
+      <param name="DWAPlannerROS/oscillation_reset_dist" value="$(arg dwa_oscillation_reset_dist)" />
+
+      <param name="DWAPlannerROS/publish_traj_pc" value="$(arg dwa_publish_traj_pc)" />
+      <param name="DWAPlannerROS/publish_cost_grid_pc" value="$(arg dwa_publish_cost_grid_pc)" />
+
+
+      <!-- <remap from="cmd_vel" to="navigation_velocity_smoother/raw_cmd_vel"/> -->
+      <remap from="odom" to="$(arg general_odom_topic)"/>
+      <remap from="scan" to="$(arg laser_topic)"/>
+    </node>
+  </group>
+
+
+  <!--move_base node with teb_planner-->
+  <group unless="$(arg dwa_planner_activated)">
+    <node pkg="move_base" type="move_base" required="true" name="move_base" output="screen">
+      
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />   
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/local_costmap_params.yaml" command="load" />   
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/move_base_params.yaml" command="load" />
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/global_planner_params.yaml" command="load" />
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/navfn_global_planner_params.yaml" command="load" />
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/teb_planner/teb_local_planner_params.yaml" command="load" />
+      
+
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/global_costmap_params.yaml" command="load" if="$(arg enable_static_layer)"/>
+      <rosparam file="$(find customer_sim_patrol_navigation)/param/global_costmap_params_without_map_static_layer.yaml" command="load" unless="$(arg enable_static_layer)"/>  
+      <!-- external params file that could be loaded into the move_base namespace -->
+      <!-- <rosparam file="$(arg custom_param_file)" command="load" /> -->
+
+      <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+
+      <!--teb_planner parameters-->      
+      <param name="TebLocalPlannerROS/teb_autosize" value="$(arg teb_autosize)"/>
+      <param name="TebLocalPlannerROS/dt_ref" value="$(arg teb_dt_ref)"/>
+      <param name="TebLocalPlannerROS/dt_hysteresis" value="$(arg teb_dt_hysteresis)"/>
+      <param name="TebLocalPlannerROS/global_plan_overwrite_orientation" value="$(arg teb_global_plan_overwrite_orientation)"/>
+      <param name="TebLocalPlannerROS/max_global_plan_lookahead_dist" value="$(arg teb_max_global_plan_lookahead_dist)"/>
+      <param name="TebLocalPlannerROS/feasibility_check_no_poses" value="$(arg teb_feasibility_check_no_poses)"/>
+
+      <param name="TebLocalPlannerROS/max_vel_x" value="$(arg general_max_vel_x)"/>
+      <param name="TebLocalPlannerROS/max_vel_x_backwards" value="$(arg teb_max_vel_x_backwards)"/>
+      <param name="TebLocalPlannerROS/max_vel_theta" value="$(arg teb_max_vel_theta)"/>
+      <param name="TebLocalPlannerROS/acc_lim_x" value="$(arg teb_acc_lim_x)"/>
+      <param name="TebLocalPlannerROS/acc_lim_theta" value="$(arg teb_acc_lim_theta)"/>
+
+      <param name="TebLocalPlannerROS/min_turning_radius" value="$(arg teb_min_turning_radius)"/>
+      <param name="TebLocalPlannerROS/wheelbase" value="$(arg teb_wheelbase)"/>
+      <param name="TebLocalPlannerROS/cmd_angle_instead_rotvel" value="$(arg teb_cmd_angle_instead_rotvel)"/>
+
+      <param name="TebLocalPlannerROS/footprint_model/type" value="$(arg teb_footprint_model_type)"/>
+
+      <param name="TebLocalPlannerROS/xy_goal_tolerance" value="$(arg general_xy_goal_tolerance)"/>
+      <param name="TebLocalPlannerROS/yaw_goal_tolerance" value="$(arg general_yaw_goal_tolerance)"/>
+      <param name="TebLocalPlannerROS/free_goal_vel" value="$(arg teb_free_goal_vel)"/>
+
+      <param name="TebLocalPlannerROS/min_obstacle_dist" value="$(arg teb_min_obstacle_dist)"/>
+      <param name="TebLocalPlannerROS/include_costmap_obstacles" value="$(arg teb_include_costmap_obstacles)"/>
+      <param name="TebLocalPlannerROS/costmap_obstacles_behind_robot_dist" value="$(arg teb_costmap_obstacles_behind_robot_dist)"/>
+      <param name="TebLocalPlannerROS/obstacle_poses_affected" value="$(arg teb_obstacle_poses_affected)"/>
+      <param name="TebLocalPlannerROS/costmap_converter_plugin" value="$(arg teb_costmap_converter_plugin)"/>
+      <param name="TebLocalPlannerROS/costmap_converter_spin_thread" value="$(arg teb_costmap_converter_spin_thread)"/>
+      <param name="TebLocalPlannerROS/costmap_converter_rate" value="$(arg teb_costmap_converter_rate)"/>
+      
+
+      <param name="TebLocalPlannerROS/no_inner_iterations" value="$(arg teb_no_inner_iterations)"/>
+      <param name="TebLocalPlannerROS/no_outer_iterations" value="$(arg teb_no_outer_iterations)"/>
+      <param name="TebLocalPlannerROS/optimization_activate" value="$(arg teb_optimization_activate)"/>
+      <param name="TebLocalPlannerROS/optimization_verbose" value="$(arg teb_optimization_verbose)"/>
+      <param name="TebLocalPlannerROS/penalty_epsilon" value="$(arg teb_penalty_epsilon)"/>
+      <param name="TebLocalPlannerROS/weight_max_vel_x" value="$(arg teb_weight_max_vel_x)"/>
+      <param name="TebLocalPlannerROS/weight_max_vel_theta" value="$(arg teb_weight_max_vel_theta)"/>
+      <param name="TebLocalPlannerROS/weight_acc_lim_x" value="$(arg teb_weight_acc_lim_x)"/>
+      <param name="TebLocalPlannerROS/weight_acc_lim_theta" value="$(arg teb_weight_acc_lim_theta)"/>
+      <param name="TebLocalPlannerROS/weight_kinematics_nh" value="$(arg teb_weight_kinematics_nh)"/>
+      <param name="TebLocalPlannerROS/weight_kinematics_forward_drive" value="$(arg teb_weight_kinematics_forward_drive)"/>
+      <param name="TebLocalPlannerROS/weight_kinematics_turning_radius" value="$(arg teb_weight_kinematics_turning_radius)"/>
+      <param name="TebLocalPlannerROS/weight_optimaltime" value="$(arg teb_weight_optimaltime)"/>
+      <param name="TebLocalPlannerROS/weight_obstacle" value="$(arg teb_weight_obstacle)"/>
+      <param name="TebLocalPlannerROS/weight_dynamic_obstacle" value="$(arg teb_weight_dynamic_obstacle)"/>
+
+      <param name="TebLocalPlannerROS/enable_homotopy_class_planning" value="$(arg teb_enable_homotopy_class_planning)"/>
+      <param name="TebLocalPlannerROS/enable_multithreading" value="$(arg teb_enable_multithreading)"/>
+      <param name="TebLocalPlannerROS/simple_exploration" value="$(arg teb_simple_exploration)"/>
+      <param name="TebLocalPlannerROS/max_number_classes" value="$(arg teb_max_number_classes)"/>
+      <param name="TebLocalPlannerROS/selection_cost_hysteresis" value="$(arg teb_selection_cost_hysteresis)"/>
+      <param name="TebLocalPlannerROS/selection_obst_cost_scale" value="$(arg teb_selection_obst_cost_scale)"/>
+      <param name="TebLocalPlannerROS/selection_alternative_time_cost" value="$(arg teb_selection_alternative_time_cost)"/>
+      <param name="TebLocalPlannerROS/roadmap_graph_no_samples" value="$(arg teb_roadmap_graph_no_samples)"/>
+      <param name="TebLocalPlannerROS/roadmap_graph_area_width" value="$(arg teb_roadmap_graph_area_width)"/>
+      <param name="TebLocalPlannerROS/h_signature_prescaler" value="$(arg teb_h_signature_prescaler)"/>
+      <param name="TebLocalPlannerROS/h_signature_threshold" value="$(arg teb_h_signature_threshold)"/>
+      <param name="TebLocalPlannerROS/obstacle_keypoint_offset" value="$(arg teb_obstacle_keypoint_offset)"/>
+      <param name="TebLocalPlannerROS/obstacle_heading_threshold" value="$(arg teb_obstacle_heading_threshold)"/>
+      <param name="TebLocalPlannerROS/visualize_hc_graph" value="$(arg teb_visualize_hc_graph)"/>
+
+
+      <param name="local_costmap/transform_tolerance" value="$(arg local_costmap_transform_tolerance)"/>
+      <param name="global_costmap/transform_tolerance" value="$(arg global_costmap_transform_tolerance)"/>
+    
+
+      <!-- speed limits -->
+      <param name="DWAPlannerROS/max_vel_x" value="$(arg general_max_vel_x)"/>
+      <param name="DWAPlannerROS/max_vel_y" value="$(arg general_max_vel_y)"/>
+      <param name="DWAPlannerROS/min_vel_x" value="$(arg general_min_vel_x)" />
+
+
+      <!-- reset frame_id parameters using user input data -->
+      <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>
+      <param name="global_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+      <param name="local_costmap/global_frame" value="$(arg global_frame_id)"/>
+      <param name="local_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+      <param name="DWAPlannerROS/global_frame_id" value="$(arg global_frame_id)"/>
+      <param name="TebLocalPlannerROS/odom_topic" value="$(arg general_odom_topic)"/>  
+
+
+      <param name="local_costmap/max_obstacle_height" value="$(arg max_obstacle_height)"/>
+      <param name="global_costmap/max_obstacle_height" value="$(arg max_obstacle_height)"/>
+
+      
+      <!-- scan heigths -->
+      <param name="local_costmap/obstacle_layer/scan/min_obstacle_height" value="$(arg scan_min_obstacle_height)"/>
+      <param name="local_costmap/obstacle_layer/scan/max_obstacle_height" value="$(arg scan_max_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/scan/min_obstacle_height" value="$(arg scan_min_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/scan/max_obstacle_height" value="$(arg scan_max_obstacle_height)"/>
+      <!-- realsense heigths -->
+      <param name="local_costmap/obstacle_layer/d435_cam1/min_obstacle_height" value="$(arg d435_cam1_min_obstacle_height)"/>
+      <param name="local_costmap/obstacle_layer/d435_cam1/max_obstacle_height" value="$(arg d435_cam1_max_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/d435_cam1/min_obstacle_height" value="$(arg d435_cam1_min_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/d435_cam1/max_obstacle_height" value="$(arg d435_cam1_max_obstacle_height)"/>
+
+      <!-- bump heigths -->
+      <param name="local_costmap/obstacle_layer/bump/min_obstacle_height" value="$(arg bump_min_obstacle_height)"/>
+      <param name="local_costmap/obstacle_layer/bump/max_obstacle_height" value="$(arg bump_max_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/bump/min_obstacle_height" value="$(arg bump_min_obstacle_height)"/>
+      <param name="global_costmap/obstacle_layer/bump/max_obstacle_height" value="$(arg bump_max_obstacle_height)"/>
+
+      <!-- realsense observation_persistence-->
+      <param name="local_costmap/obstacle_layer/d435_cam1/observation_persistence" value="$(arg d435_cam1_observation_persistence)"/>
+      <param name="global_costmap/obstacle_layer/d435_cam1/observation_persistence" value="$(arg d435_cam1_observation_persistence)"/>
+
+      <!-- scan observation_persistence-->
+      <param name="local_costmap/obstacle_layer/scan/observation_persistence" value="$(arg scan_observation_persistence)"/>
+      <param name="global_costmap/obstacle_layer/scan/observation_persistence" value="$(arg scan_observation_persistence)"/>
+
+      <!--global origins-->
+      <param name="global_costmap/origin_x" value="$(arg global_origin_x)"/>
+      <param name="global_costmap/origin_y" value="$(arg global_origin_y)"/>
+      <param name="global_costmap/origin_z" value="$(arg global_origin_z)"/>
+
+      <!--global map dimenssions-->
+      <param name="global_costmap/width" value="$(arg global_map_width)"/>
+      <param name="global_costmap/height" value="$(arg global_map_height)"/>
+
+      <!--local map dimenssions-->
+      <param name="local_costmap/width" value="$(arg local_map_width)"/>
+      <param name="local_costmap/height" value="$(arg local_map_height)"/>
+        
+      <!-- robot radius-->
+      <param name="global_costmap/robot_radius" value="$(arg robot_radius)"/>
+      <param name="local_costmap/robot_radius" value="$(arg robot_radius)"/>
+
+      <!--track_unknown_space-->
+      <param name="local_costmap/obstacle_layer/track_unknown_space" value="$(arg track_unknown_space)" />
+
+        
+      <!-- obstacle range-->
+      <param name="global_costmap/obstacle_layer/obstacle_range" value="$(arg costmap_obstacle_range)"/>
+      <param name="local_costmap/obstacle_layer/obstacle_range" value="$(arg costmap_obstacle_range)"/>
+
+      <!-- inflation_radius-->
+      <param name="local_costmap/inflation_layer/inflation_radius" value="$(arg local_inflation_radius)"/>
+
+      <param name="global_costmap/inflation_layer/inflation_radius" value="$(arg local_inflation_radius)"/>
+
+
+      <remap from="cmd_vel" to="raw_cmd_vel"/>
+      <remap from="odom" to="$(arg general_odom_topic)"/>
+      <remap from="scan" to="$(arg laser_topic)"/>
+    </node>
+  </group>
+
+</launch>

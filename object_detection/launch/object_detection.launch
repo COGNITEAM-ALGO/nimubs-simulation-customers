@@ -1,0 +1,10 @@
+<launch>
+    <arg name="img_width" default="300" />
+    <arg name="img_height" default="300" />
+    <arg name="confidence" default="0.7" />
+    <node name="object_detection_node" pkg="object_detection" type="object_detection_node.py" output="screen">
+        <param name="img_width" value="$(arg img_width)" />
+        <param name="img_height" value="$(arg img_height)" />
+        <param name="confidence" value="$(arg confidence)" />
+    </node>
+</launch>

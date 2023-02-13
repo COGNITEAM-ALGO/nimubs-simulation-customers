@@ -1,0 +1,8 @@
+
+footprint: [ [0.15,0.09], [0.15,-0.09], [-0.09,-0.09], [-0.09,0.09] ]
+
+transform_tolerance: 0.5
+
+map_type: costmap
+
+
